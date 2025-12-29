@@ -82,7 +82,7 @@ export default function Campaign() {
     return (
         <>
             <div className="w-full h-full bg-[#0000008c] fixed top-0 left-0 z-50 backdrop-blur-xs"></div>
-            <div ref={boxRef} className="w-full max-w-175 bg-[#111111] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-52 rounded-md shadow-md">
+            <div ref={boxRef} className="w-[95%] max-w-175 bg-[#111111] fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-52 rounded-md shadow-md">
 
                 {
                     isLoading ? (
