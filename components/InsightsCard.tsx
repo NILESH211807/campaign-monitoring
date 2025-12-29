@@ -68,7 +68,7 @@ export default function InsightsCard({ item }: InsightsCardProps) {
     // }, [item.value])
 
     return (
-        <div ref={boxRef} className=" bg-[#1a1a1aa9] backdrop-blur-2xl rounded-md p-5 relative shadow-md border border-[#131313]">
+        <div ref={boxRef} className=" bg-[#1f1f1fa9] backdrop-blur-2xl rounded-md p-5 relative shadow-md border-2 border-[#131313]">
             <h2 className="text-white opacity-50 text-sm tracking-wide">{item.title}</h2>
             <h1 className="text-3xl font-bold my-3" ref={numberRef}>
                 {item.isCurrency ? formatCurrency(item.value) : !item?.isPercentage ? item.value.toLocaleString() : item.value}
