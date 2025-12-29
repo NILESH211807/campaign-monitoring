@@ -1,65 +1,115 @@
-import Image from "next/image";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+"use client";
+import { Activity, Suspense, useMemo } from "react";
+import Campaigns from "@/components/Campaigns";
+import InsightsCard from "@/components/InsightsCard";
+import Navbar from "@/components/Navbar";
+import { MdErrorOutline } from "react-icons/md";
+import { fetchInsights } from "@/lib/api/fetch";
+import { useQuery } from "@tanstack/react-query";
+import Loading from "@/components/Loading";
+import { cardConfig, cardPerformanceConfig } from "@/data/cardConfigData";
+import { useSearchParams } from "next/navigation";
+import Campaign from "@/components/Campaign";
+
+function Dashboard() {
+
+    const searchParams = useSearchParams();
+    const campaignId = searchParams?.get("campaign") ?? null;
+
+    const { data, isPending, isError, error } = useQuery({
+        queryKey: ["CAMP_INSIGHTS"],
+        queryFn: fetchInsights,
+    });
+
+    // insights data
+    const [insights, performanceData] = useMemo(() => {
+        if (isPending || isError || !data) return [];
+        const insights = cardConfig.map(card => ({
+            ...card,
+            value: data?.insights[card?.key]
+        }));
+
+        const performanceData = cardPerformanceConfig.map(item => ({
+            ...item,
+            value: data?.insights[item?.key]
+        }));
+
+        return [insights, performanceData];
+    }, [data, isPending, isError]);
+
+
+    if (isError || error) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center flex-col gap-2">
+                <MdErrorOutline size={60} className="text-red-600" />
+                <h1 className="text-xl font-semibold text-red-600">{error?.message || "Something went wrong!"}</h1>
+                <p className="text-sm text-gray-500">Please try again later.</p>
+            </div>
+        )
+    }
+
+    if (isPending) return (
+        <div className="w-full h-screen flex items-center justify-center">
+            <Loading />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    );
+
+    return (
+        <div className="min-h-screen w-full relative">
+            <div
+                className="absolute inset-0 z-0"
+                style={{
+                    background:
+                        "radial-gradient(circle at top, #1c1c1c, #000000)",
+                }}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div className="relative z-10">
+                <Navbar />
+                <div className="w-full max-w-350 mx-auto px-5 py-10 max-sm:px-3">
+                    <div className="w-full grid grid-cols-4 gap-4 max-lg:grid-cols-3 max-md:gap-3 max-md:grid-cols-2 max-sm:grid-cols-1">
+                        {
+                            insights?.map((item, index) => (
+                                <InsightsCard key={index} item={item} />
+                            ))
+                        }
+                    </div>
+
+                    <div className="w-full">
+                        <h2 className="text-xl font-semibold my-5 text-white">Performance Insights</h2>
+
+                        <div className="grid grid-cols-3 gap-4 max-lg:grid-cols-3 max-md:gap-3 max-md:grid-cols-2 max-sm:grid-cols-1">
+                            {
+                                performanceData?.map((item, index) => (
+                                    <InsightsCard key={index} item={item} />
+                                ))
+                            }
+                        </div>
+                    </div>
+
+                    <div className="w-full">
+                        <div className="my-6">
+                            <h1 className="text-2xl font-bold text-white mb-1">Campaigns</h1>
+                            <p className="text-sm font-medium -my-1 text-[#666666]">Manage and monitor your advertising campaigns</p>
+                        </div>
+                        <Campaigns />
+                    </div>
+                </div>
+                <Activity mode={campaignId ? "visible" : "hidden"}>
+                    <Campaign />
+                </Activity>
+            </div>
         </div>
-      </main>
-    </div>
-  );
+    );
+}
+
+
+export default function Page() {
+    return (
+        <Suspense fallback={<div className="w-full h-screen flex items-center justify-center">
+            <Loading />
+        </div>}>
+            <Dashboard />
+        </Suspense>
+    );
 }
